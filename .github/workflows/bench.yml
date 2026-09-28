@@ -1,0 +1,84 @@
+name: Runner Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_label:
+        description: "Runner label both parallel jobs will use (e.g. ubuntu-latest, blacksmith-2vcpu-ubuntu-2404)"
+        required: true
+        type: string
+
+jobs:
+  bench-a:
+    name: bench-a (${{ inputs.runner_label }})
+    runs-on: ${{ inputs.runner_label }}
+    timeout-minutes: 30
+    steps:
+      - name: Runner info
+        run: |
+          echo "runner_label=${{ inputs.runner_label }}"
+          echo "start_epoch=$(date +%s)"
+          nproc || true
+          free -h || true
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install (npm ci, no cache)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (tsc + webpack)
+        run: npm run build
+
+      - name: Test (jest)
+        run: npm test
+
+      - name: Docker build (no cache)
+        run: docker build --no-cache -t bench-a:${{ github.run_id }} .
+
+      - name: Elapsed
+        if: always()
+        run: echo "end_epoch=$(date +%s)"
+
+  bench-b:
+    name: bench-b (${{ inputs.runner_label }})
+    runs-on: ${{ inputs.runner_label }}
+    timeout-minutes: 30
+    steps:
+      - name: Runner info
+        run: |
+          echo "runner_label=${{ inputs.runner_label }}"
+          echo "start_epoch=$(date +%s)"
+          nproc || true
+          free -h || true
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install (npm ci, no cache)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (tsc + webpack)
+        run: npm run build
+
+      - name: Test (jest)
+        run: npm test
+
+      - name: Docker build (no cache)
+        run: docker build --no-cache -t bench-b:${{ github.run_id }} .
+
+      - name: Elapsed
+        if: always()
+        run: echo "end_epoch=$(date +%s)"
