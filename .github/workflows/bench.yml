@@ -39,6 +39,9 @@ jobs:
       - name: Test (jest)
         run: npm test
 
+      - name: Analytics benchmark (CPU-bound, scales with vCPU)
+        run: npm run bench:analytics
+
       - name: Docker build (no cache)
         run: docker build --no-cache -t bench-a:${{ github.run_id }} .
 
@@ -75,6 +78,9 @@ jobs:
 
       - name: Test (jest)
         run: npm test
+
+      - name: Analytics benchmark (CPU-bound, scales with vCPU)
+        run: npm run bench:analytics
 
       - name: Docker build (no cache)
         run: docker build --no-cache -t bench-b:${{ github.run_id }} .
