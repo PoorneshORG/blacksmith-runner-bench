@@ -1,0 +1,39 @@
+name: Checkout Probe (IT-13475)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  mirror:
+    name: mirror depth-${{ matrix.depth }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        depth: [0, 1]
+    steps:
+      - uses: useblacksmith/checkout@v1
+        with:
+          repository: vuejs/core
+          fetch-depth: ${{ matrix.depth }}
+          path: core
+      - run: du -sh core/.git
+
+  baseline:
+    name: baseline depth-${{ matrix.depth }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        depth: [0, 1]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: vuejs/core
+          fetch-depth: ${{ matrix.depth }}
+          path: core
+      - run: du -sh core/.git
